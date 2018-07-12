@@ -9,10 +9,12 @@ $ ./harbor-replicator --help
 Usage of ./harbor-replicator:
   -harbor string
         harbor registry server address
+  -hpass string
+        password for harbor
+  -huser string
+        user for harbor
   -insecure
         using http:// scheme for harbor
-  -pass string
-        password for harbor
   -project string
         filter projects
   -remote string
@@ -21,8 +23,6 @@ Usage of ./harbor-replicator:
         password for remote registry
   -remote_user string
         user for remote registry
-  -user string
-        user for harbor
   ```
   
 # Environment
