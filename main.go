@@ -25,7 +25,7 @@ var (
 
 func harborStatusChecker(harbor string, user, pass string, project string, since time.Time, insecure bool) <-chan *harborclient.Event {
 	out := make(chan *harborclient.Event, 1)
-	time.ParseDuration("1d")
+
 	go func() {
 		c := harborclient.NewHarborClient(harbor, user, pass, project, insecure)
 
