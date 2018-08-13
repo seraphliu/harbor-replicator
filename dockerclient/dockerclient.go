@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const CmdTimeout = 180 * time.Second
+const CmdTimeout = 300 * time.Second
 
 type DockerCLI struct {
 	registry string

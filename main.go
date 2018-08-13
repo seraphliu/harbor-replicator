@@ -7,6 +7,8 @@ import (
 
 	"github.com/seraphliu/harbor-replicator/dockerclient"
 	"github.com/seraphliu/harbor-replicator/harborclient"
+	"fmt"
+	"os"
 )
 
 var (
@@ -18,11 +20,12 @@ var (
 	ruser    = flag.String("remote_user", "", "user for remote registry")
 	rpass    = flag.String("remote_pass", "", "password for remote registry")
 	project  = flag.String("project", "", "filter projects")
+	since    = flag.Duration("since", 720*time.Hour, "sync since some time duration ago")
 )
 
-func harborStatusChecker(harbor string, user, pass string, project string, insecure bool) <-chan *harborclient.Event {
+func harborStatusChecker(harbor string, user, pass string, project string, since time.Time, insecure bool) <-chan *harborclient.Event {
 	out := make(chan *harborclient.Event, 1)
-
+	time.ParseDuration("1d")
 	go func() {
 		c := harborclient.NewHarborClient(harbor, user, pass, project, insecure)
 
@@ -39,9 +42,11 @@ func harborStatusChecker(harbor string, user, pass string, project string, insec
 					continue
 				}
 				for t := range tags {
-					out <- &harborclient.Event{
-						Repo: k,
-						Tag:  t,
+					if tags[t].After(since) {
+						out <- &harborclient.Event{
+							Repo: k,
+							Tag:  t,
+						}
 					}
 				}
 			}
@@ -55,7 +60,18 @@ func harborStatusChecker(harbor string, user, pass string, project string, insec
 func main() {
 	flag.Parse()
 
-	out := harborStatusChecker(*harbor, *user, *pass, *project, *insecure)
+	if *harbor == "" {
+		fmt.Println("empty harbor server address")
+		os.Exit(1)
+	}
+	if *rhost == "" {
+		fmt.Println("empty remote server address")
+		os.Exit(1)
+	}
+
+	watchTime := time.Now().Add(- *since)
+
+	out := harborStatusChecker(*harbor, *user, *pass, *project, watchTime, *insecure)
 
 	local := dockerclient.NewDockerClient(*harbor, *user, *pass)
 	if err := local.Login(); err != nil {
